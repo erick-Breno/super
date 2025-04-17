@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperMercado - Sua melhor escolha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Super<span>Mercado</span></h1>
+            </div>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <nav>
+                <ul class="menu">
+                    <li><a href="index.html" class="active">Início</a></li>
+                    <li><a href="produtos.html">Produtos</a></li>
+                    <li><a href="#localizacao">Localização</a></li>
+                    <li><a href="login.html" class="btn-login">Login</a></li>
+                </ul>
+            </nav>
+            <div class="accessibility-controls">
+                <button id="increase-font" title="Aumentar fonte"><i class="fas fa-text-height"></i></button>
+                <button id="high-contrast" title="Alto contraste"><i class="fas fa-adjust"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Bem-vindo ao SuperMercado</h2>
+                <p>Qualidade, variedade e os melhores preços para você e sua família.</p>
+                <a href="produtos.html" class="btn">Ver Produtos</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="search-section">
+        <div class="container">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Buscar produtos...">
+                <button id="search-button"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section class="featured-products">
+        <div class="container">
+            <h2 class="section-title">Produtos em Destaque</h2>
+            <div class="products-grid" id="featured-products-container">
+                <!-- Produtos serão inseridos via JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <section class="promotions">
+        <div class="container">
+            <h2 class="section-title">Ofertas Imperdíveis</h2>
+            <div class="products-grid" id="promotions-container">
+                <!-- Promoções serão inseridas via JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <section class="location" id="localizacao">
+        <div class="container">
+            <h2 class="section-title">Nossa Localização</h2>
+            <div class="location-content">
+                <div class="location-info">
+                    <h3>Visite Nossa Loja</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Av. Principal, 1234 - Centro</p>
+                    <p><i class="fas fa-phone"></i> (11) 1234-5678</p>
+                    <p><i class="fas fa-clock"></i> Segunda a Sábado: 8h às 22h</p>
+                    <p><i class="fas fa-clock"></i> Domingo: 8h às 20h</p>
+                </div>
+                <div class="location-map">
+                    <!-- Mapa ilustrativo (imagem) -->
+                    <img src="https://via.placeholder.com/600x300?text=Mapa+do+Supermercado" alt="Mapa do Supermercado">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>Super<span>Mercado</span></h2>
+                    <p>Sua melhor escolha para compras</p>
+                </div>
+                <div class="footer-links">
+                    <h3>Links Rápidos</h3>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="produtos.html">Produtos</a></li>
+                        <li><a href="#localizacao">Localização</a></li>
+                        <li><a href="login.html">Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3>Contato</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Av. Principal, 1234 - Centro</p>
+                    <p><i class="fas fa-phone"></i> (11) 1234-5678</p>
+                    <p><i class="fas fa-envelope"></i> contato@supermercado.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 SuperMercado. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
