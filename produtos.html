@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produtos - SuperMercado</title>
+    <title>Produtos - SEAGRI MA</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -11,7 +11,7 @@
     <header>
         <div class="container">
             <div class="logo">
-                <h1>Super<span>Mercado</span></h1>
+                <h1>SEAGRI<span>MA</span></h1>
             </div>
             <div class="menu-toggle">
                 <i class="fas fa-bars"></i>
@@ -20,13 +20,14 @@
                 <ul class="menu">
                     <li><a href="index.html">Início</a></li>
                     <li><a href="produtos.html" class="active">Produtos</a></li>
-                    <li><a href="index.html#localizacao">Localização</a></li>
+                    <li><a href="index.html#sobre">Sobre</a></li>
                     <li><a href="login.html" class="btn-login">Login</a></li>
                 </ul>
             </nav>
             <div class="accessibility-controls">
                 <button id="increase-font" title="Aumentar fonte"><i class="fas fa-text-height"></i></button>
                 <button id="high-contrast" title="Alto contraste"><i class="fas fa-adjust"></i></button>
+                <button id="theme-toggle" title="Alternar tema"><i class="fas fa-moon"></i></button>
             </div>
         </div>
     </header>
@@ -34,6 +35,7 @@
     <section class="page-header">
         <div class="container">
             <h2>Nossos Produtos</h2>
+            <p>Descubra produtos frescos e de qualidade</p>
         </div>
     </section>
 
@@ -53,11 +55,16 @@
                 <div class="filter-options">
                     <button class="filter-btn active" data-category="todos">Todos</button>
                     <button class="filter-btn" data-category="hortifruti">Hortifruti</button>
-                    <button class="filter-btn" data-category="carnes">Carnes</button>
-                    <button class="filter-btn" data-category="padaria">Padaria</button>
+                    <button class="filter-btn" data-category="graos">Grãos</button>
                     <button class="filter-btn" data-category="laticinios">Laticínios</button>
-                    <button class="filter-btn" data-category="bebidas">Bebidas</button>
-                    <button class="filter-btn" data-category="limpeza">Limpeza</button>
+                    <button class="filter-btn" data-category="carnes">Carnes</button>
+                    <button class="filter-btn" data-category="outros">Outros</button>
+                </div>
+                <h3>Filtrar por Tipo</h3>
+                <div class="filter-options">
+                    <button class="filter-btn active" data-type="todos">Todos</button>
+                    <button class="filter-btn" data-type="venda">Venda</button>
+                    <button class="filter-btn" data-type="doacao">Doação</button>
                 </div>
             </div>
 
@@ -67,34 +74,43 @@
         </div>
     </section>
 
+    <button class="publish-btn" id="publish-btn" title="Publicar Produto">
+        <i class="fas fa-plus"></i>
+    </button>
+
     <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">
-                    <h2>Super<span>Mercado</span></h2>
-                    <p>Sua melhor escolha para compras</p>
+                    <h2>SEAGRI<span>MA</span></h2>
+                    <p>Mercado Solidário do Maranhão</p>
                 </div>
                 <div class="footer-links">
                     <h3>Links Rápidos</h3>
                     <ul>
                         <li><a href="index.html">Início</a></li>
                         <li><a href="produtos.html">Produtos</a></li>
-                        <li><a href="index.html#localizacao">Localização</a></li>
+                        <li><a href="index.html#sobre">Sobre</a></li>
                         <li><a href="login.html">Login</a></li>
                     </ul>
                 </div>
                 <div class="footer-contact">
                     <h3>Contato</h3>
-                    <p><i class="fas fa-map-marker-alt"></i> Av. Principal, 1234 - Centro</p>
-                    <p><i class="fas fa-phone"></i> (11) 1234-5678</p>
-                    <p><i class="fas fa-envelope"></i> contato@supermercado.com</p>
+                    <p><i class="fas fa-envelope"></i> contato@seagrima.gov.br</p>
+                    <p><i class="fas fa-phone"></i> (98) 3194-7000</p>
+                    <p><i class="fas fa-map-marker-alt"></i> São Luís - MA</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 SuperMercado. Todos os direitos reservados.</p>
+                <p>&copy; 2024 SEAGRI MA. Todos os direitos reservados.</p>
             </div>
         </div>
     </footer>
+
+    <div id="notification" class="notification">
+        <p id="notification-message"></p>
+        <button id="notification-close"><i class="fas fa-times"></i></button>
+    </div>
 
     <script src="script.js"></script>
 </body>

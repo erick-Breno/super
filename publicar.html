@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicar Produto - SEAGRI MA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>SEAGRI<span>MA</span></h1>
+            </div>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <nav>
+                <ul class="menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="produtos.html">Produtos</a></li>
+                    <li><a href="publicar.html" class="active">Publicar</a></li>
+                    <li><a href="login.html" class="btn-login">Login</a></li>
+                </ul>
+            </nav>
+            <div class="accessibility-controls">
+                <button id="increase-font" title="Aumentar fonte"><i class="fas fa-text-height"></i></button>
+                <button id="high-contrast" title="Alto contraste"><i class="fas fa-adjust"></i></button>
+                <button id="theme-toggle" title="Alternar tema"><i class="fas fa-moon"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <div class="container">
+            <h2>Publicar Produto</h2>
+            <p>Compartilhe seus produtos com a comunidade</p>
+        </div>
+    </section>
+
+    <section class="publish-section">
+        <div class="container">
+            <div class="publish-container">
+                <form id="publish-form">
+                    <div class="form-group">
+                        <label for="product-name">Nome do Produto *</label>
+                        <input type="text" id="product-name" name="product-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-description">Descrição *</label>
+                        <textarea id="product-description" name="product-description" required placeholder="Descreva seu produto, condições, origem, etc."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-type">Tipo *</label>
+                        <select id="product-type" name="product-type" required>
+                            <option value="venda">Venda</option>
+                            <option value="doacao">Doação</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="price-group">
+                        <label for="product-price">Preço (R$) *</label>
+                        <input type="number" id="product-price" name="product-price" step="0.01" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-category">Categoria *</label>
+                        <select id="product-category" name="product-category" required>
+                            <option value="hortifruti">Hortifruti</option>
+                            <option value="graos">Grãos</option>
+                            <option value="laticinios">Laticínios</option>
+                            <option value="carnes">Carnes</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-location">Localização *</label>
+                        <select id="product-location" name="product-location" required>
+                            <option value="">Selecione sua cidade</option>
+                            <option value="Açailândia - MA">Açailândia - MA</option>
+                            <option value="Imperatriz - MA">Imperatriz - MA</option>
+                            <option value="São Luís - MA">São Luís - MA</option>
+                            <option value="Caxias - MA">Caxias - MA</option>
+                            <option value="Codó - MA">Codó - MA</option>
+                            <option value="Timon - MA">Timon - MA</option>
+                            <option value="Bacabal - MA">Bacabal - MA</option>
+                            <option value="Balsas - MA">Balsas - MA</option>
+                            <option value="Santa Inês - MA">Santa Inês - MA</option>
+                            <option value="Pinheiro - MA">Pinheiro - MA</option>
+                            <option value="Pedreiras - MA">Pedreiras - MA</option>
+                            <option value="Barra do Corda - MA">Barra do Corda - MA</option>
+                            <option value="Chapadinha - MA">Chapadinha - MA</option>
+                            <option value="São José de Ribamar - MA">São José de Ribamar - MA</option>
+                            <option value="Paço do Lumiar - MA">Paço do Lumiar - MA</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-contact">Contato *</label>
+                        <input type="text" id="product-contact" name="product-contact" required placeholder="Ex: (98) 99999-9999 ou email@exemplo.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Imagem do Produto *</label>
+                        <div class="file-upload">
+                            <input type="file" id="product-image" name="product-image" accept="image/*" required>
+                            <label for="product-image" class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Clique para selecionar uma imagem</span>
+                                <small>Formatos aceitos: JPG, JPEG, PNG, GIF (máx. 5MB)</small>
+                            </label>
+                        </div>
+                        <div class="image-preview" id="image-preview" style="display: none;">
+                            <img id="preview-img" src="/placeholder.svg" alt="Preview">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Publicar Produto
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>SEAGRI<span>MA</span></h2>
+                    <p>Mercado Solidário do Maranhão</p>
+                </div>
+                <div class="footer-links">
+                    <h3>Links Rápidos</h3>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="produtos.html">Produtos</a></li>
+                        <li><a href="publicar.html">Publicar</a></li>
+                        <li><a href="login.html">Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3>Contato</h3>
+                    <p><i class="fas fa-envelope"></i> contato@seagrima.gov.br</p>
+                    <p><i class="fas fa-phone"></i> (98) 3194-7000</p>
+                    <p><i class="fas fa-map-marker-alt"></i> São Luís - MA</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 SEAGRI MA. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="notification" class="notification">
+        <p id="notification-message"></p>
+        <button id="notification-close"><i class="fas fa-times"></i></button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

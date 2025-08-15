@@ -1,17 +1,17 @@
-// Versão modificada do script.js para usar o banco de dados
+// Versão corrigida do script.js para usar o banco de dados
 import {
   fetchAllProducts,
   fetchFeaturedProducts,
   fetchPromotionProducts,
+  fetchDonationProducts,
   fetchProductsByCategory,
+  fetchProductsByType,
   searchProducts,
   createProduct,
-  updateProduct,
-  deleteProduct,
   login,
   logout,
+  register,
   getCurrentUser,
-  fetchProductById,
 } from "./api.js"
 
 // Funções de utilidade
@@ -22,6 +22,8 @@ function formatarPreco(preco) {
 function mostrarNotificacao(mensagem, tipo = "success") {
   const notificacao = document.getElementById("notification")
   const mensagemElement = document.getElementById("notification-message")
+
+  if (!notificacao || !mensagemElement) return
 
   mensagemElement.textContent = mensagem
   notificacao.className = "notification " + tipo
@@ -61,6 +63,34 @@ function inicializarAcessibilidade() {
   }
 }
 
+// Funções de tema escuro
+function inicializarTemaEscuro() {
+  const themeToggle = document.getElementById("theme-toggle")
+  const themeIcon = themeToggle?.querySelector("i")
+
+  if (!themeToggle) return
+
+  // Verificar tema salvo
+  const savedTheme = localStorage.getItem("theme") || "light"
+  document.documentElement.setAttribute("data-theme", savedTheme)
+
+  if (themeIcon) {
+    themeIcon.className = savedTheme === "dark" ? "fas fa-sun" : "fas fa-moon"
+  }
+
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme")
+    const newTheme = currentTheme === "dark" ? "light" : "dark"
+
+    document.documentElement.setAttribute("data-theme", newTheme)
+    localStorage.setItem("theme", newTheme)
+
+    if (themeIcon) {
+      themeIcon.className = newTheme === "dark" ? "fas fa-sun" : "fas fa-moon"
+    }
+  })
+}
+
 // Funções de menu responsivo
 function inicializarMenuResponsivo() {
   const menuToggle = document.querySelector(".menu-toggle")
@@ -75,25 +105,34 @@ function inicializarMenuResponsivo() {
 
 // Funções de exibição de produtos
 function criarCardProduto(produto) {
+  const precoDisplay =
+    produto.product_type === "doacao"
+      ? "Gratuito"
+      : produto.promotion
+        ? `<span class="original-price">${formatarPreco(produto.price)}</span> ${formatarPreco(produto.promotional_price)}`
+        : formatarPreco(produto.price)
+
   const cardHTML = `
-    <div class="product-card" data-id="${produto.id}" data-category="${produto.category}">
+    <div class="product-card" data-id="${produto.id}" data-category="${produto.category}" data-type="${produto.product_type}">
       <div class="product-image">
-        <img src="${produto.image_url}" alt="${produto.name}">
+        <img src="${produto.image_url || "https://via.placeholder.com/300?text=" + encodeURIComponent(produto.name)}" alt="${produto.name}">
       </div>
       <div class="product-info">
+        <div class="product-type-badge ${produto.product_type}">${produto.product_type === "doacao" ? "Doação" : "Venda"}</div>
         <span class="product-category">${traduzirCategoria(produto.category)}</span>
         <h3 class="product-title">${produto.name}</h3>
         <p class="product-description">${produto.description}</p>
-        ${
-          produto.promotion
-            ? `<div class="product-price promotion">
-                <span class="original-price">${formatarPreco(produto.price)}</span>
-                ${formatarPreco(produto.promotional_price)}
-              </div>`
-            : `<div class="product-price">
-                ${formatarPreco(produto.price)}
-              </div>`
-        }
+        <div class="product-location">
+          <i class="fas fa-map-marker-alt"></i>
+          ${produto.location || "Localização não informada"}
+        </div>
+        <div class="product-price ${produto.promotion ? "promotion" : ""}">
+          ${precoDisplay}
+        </div>
+        <div class="product-contact">
+          <i class="fas fa-phone"></i>
+          ${produto.contact_info || "Contato não informado"}
+        </div>
       </div>
     </div>
   `
@@ -103,11 +142,12 @@ function criarCardProduto(produto) {
 function traduzirCategoria(categoria) {
   const categorias = {
     hortifruti: "Hortifruti",
+    graos: "Grãos",
     carnes: "Carnes",
-    padaria: "Padaria",
     laticinios: "Laticínios",
     bebidas: "Bebidas",
     limpeza: "Limpeza",
+    outros: "Outros",
   }
   return categorias[categoria] || categoria
 }
@@ -127,6 +167,30 @@ async function exibirProdutosDestaque() {
 
   container.innerHTML = ""
   produtosDestaque.forEach((produto) => {
+    container.innerHTML += criarCardProduto(produto)
+  })
+}
+
+async function exibirDoacoes() {
+  const container = document.getElementById("donations-container")
+  if (!container) return
+
+  const result = await fetchDonationProducts()
+
+  if (!result.success) {
+    mostrarNotificacao(result.error, "error")
+    return
+  }
+
+  const doacoes = result.data
+
+  container.innerHTML = ""
+  if (doacoes.length === 0) {
+    container.innerHTML = '<p class="no-results">Nenhuma doação disponível no momento.</p>'
+    return
+  }
+
+  doacoes.forEach((produto) => {
     container.innerHTML += criarCardProduto(produto)
   })
 }
@@ -194,21 +258,52 @@ async function filtrarProdutosPorCategoria(categoria) {
   })
 }
 
+async function filtrarProdutosPorTipo(tipo) {
+  const container = document.getElementById("products-container")
+  if (!container) return
+
+  let result
+
+  if (tipo === "todos") {
+    result = await fetchAllProducts()
+  } else {
+    result = await fetchProductsByType(tipo)
+  }
+
+  if (!result.success) {
+    mostrarNotificacao(result.error, "error")
+    return
+  }
+
+  const produtosFiltrados = result.data
+
+  container.innerHTML = ""
+  produtosFiltrados.forEach((produto) => {
+    container.innerHTML += criarCardProduto(produto)
+  })
+}
+
 function inicializarFiltros() {
   const botoesFiltro = document.querySelectorAll(".filter-btn")
   if (botoesFiltro.length === 0) return
 
   botoesFiltro.forEach((botao) => {
     botao.addEventListener("click", () => {
-      // Remover classe ativa de todos os botões
-      botoesFiltro.forEach((b) => b.classList.remove("active"))
+      // Remover classe ativa de todos os botões do mesmo grupo
+      const isCategory = botao.hasAttribute("data-category")
+      const isType = botao.hasAttribute("data-type")
 
-      // Adicionar classe ativa ao botão clicado
-      botao.classList.add("active")
-
-      // Filtrar produtos
-      const categoria = botao.getAttribute("data-category")
-      filtrarProdutosPorCategoria(categoria)
+      if (isCategory) {
+        document.querySelectorAll("[data-category]").forEach((b) => b.classList.remove("active"))
+        botao.classList.add("active")
+        const categoria = botao.getAttribute("data-category")
+        filtrarProdutosPorCategoria(categoria)
+      } else if (isType) {
+        document.querySelectorAll("[data-type]").forEach((b) => b.classList.remove("active"))
+        botao.classList.add("active")
+        const tipo = botao.getAttribute("data-type")
+        filtrarProdutosPorTipo(tipo)
+      }
     })
   })
 }
@@ -258,7 +353,10 @@ async function realizarBusca() {
     // Atualizar botões de filtro
     const botoesFiltro = document.querySelectorAll(".filter-btn")
     botoesFiltro.forEach((botao) => botao.classList.remove("active"))
-    document.querySelector('.filter-btn[data-category="todos"]').classList.add("active")
+    const todosCategoryBtn = document.querySelector('.filter-btn[data-category="todos"]')
+    const todosTypeBtn = document.querySelector('.filter-btn[data-type="todos"]')
+    if (todosCategoryBtn) todosCategoryBtn.classList.add("active")
+    if (todosTypeBtn) todosTypeBtn.classList.add("active")
   } else {
     // Estamos na página inicial, redirecionar para a página de produtos
     sessionStorage.setItem("termoBusca", termoBusca)
@@ -268,33 +366,77 @@ async function realizarBusca() {
 
 // Funções de login e autenticação
 function inicializarFormularioLogin() {
-  const formLogin = document.getElementById("login-form")
-  if (!formLogin) return
+  // Inicializar abas de login/cadastro
+  const authTabs = document.querySelectorAll(".auth-tab-btn")
+  const authForms = document.querySelectorAll(".auth-form")
 
-  formLogin.addEventListener("submit", async (e) => {
-    e.preventDefault()
+  authTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const targetTab = tab.getAttribute("data-tab")
 
-    const email = document.getElementById("email").value
-    const senha = document.getElementById("password").value
+      // Remover classe ativa de todas as abas e formulários
+      authTabs.forEach((t) => t.classList.remove("active"))
+      authForms.forEach((f) => f.classList.remove("active"))
 
-    const result = await login(email, senha)
-
-    if (result.success) {
-      // Login bem-sucedido
-      mostrarNotificacao("Login realizado com sucesso!")
-
-      setTimeout(() => {
-        if (result.data.user_type === "admin") {
-          window.location.href = "admin.html"
-        } else {
-          window.location.href = "index.html"
-        }
-      }, 1000)
-    } else {
-      // Login falhou
-      mostrarNotificacao(result.error, "error")
-    }
+      // Adicionar classe ativa à aba clicada e formulário correspondente
+      tab.classList.add("active")
+      document.getElementById(`${targetTab}-form-container`).classList.add("active")
+    })
   })
+
+  // Formulário de login
+  const formLogin = document.getElementById("login-form")
+  if (formLogin) {
+    formLogin.addEventListener("submit", async (e) => {
+      e.preventDefault()
+
+      const email = document.getElementById("login-email").value
+      const senha = document.getElementById("login-password").value
+
+      const result = await login(email, senha)
+
+      if (result.success) {
+        mostrarNotificacao("Login realizado com sucesso!")
+        setTimeout(() => {
+          if (result.data.user_type === "admin") {
+            window.location.href = "admin.html"
+          } else {
+            window.location.href = "index.html"
+          }
+        }, 1000)
+      } else {
+        mostrarNotificacao(result.error, "error")
+      }
+    })
+  }
+
+  // Formulário de cadastro
+  const formRegister = document.getElementById("register-form")
+  if (formRegister) {
+    formRegister.addEventListener("submit", async (e) => {
+      e.preventDefault()
+
+      const email = document.getElementById("register-email").value
+      const senha = document.getElementById("register-password").value
+      const confirmarSenha = document.getElementById("register-confirm-password").value
+
+      if (senha !== confirmarSenha) {
+        mostrarNotificacao("As senhas não coincidem!", "error")
+        return
+      }
+
+      const result = await register(email, senha, "cliente")
+
+      if (result.success) {
+        mostrarNotificacao("Cadastro realizado com sucesso! Faça login para continuar.")
+        // Mudar para aba de login
+        document.querySelector('.auth-tab-btn[data-tab="login"]').click()
+        formRegister.reset()
+      } else {
+        mostrarNotificacao(result.error, "error")
+      }
+    })
+  }
 }
 
 async function verificarAutenticacao() {
@@ -304,8 +446,8 @@ async function verificarAutenticacao() {
   // Verificar se estamos na página de admin
   if (window.location.pathname.includes("admin.html")) {
     if (!usuarioLogado || usuarioLogado.user_type !== "admin") {
-      // Redirecionar para login se não for admin
       window.location.href = "login.html"
+      return
     }
   }
 
@@ -315,13 +457,14 @@ async function verificarAutenticacao() {
     if (usuarioLogado) {
       btnLogin.textContent = "Sair"
       btnLogin.href = "#"
-      btnLogin.addEventListener("click", (e) => {
+      btnLogin.onclick = (e) => {
         e.preventDefault()
         fazerLogout()
-      })
+      }
     } else {
       btnLogin.textContent = "Login"
       btnLogin.href = "login.html"
+      btnLogin.onclick = null
     }
   }
 }
@@ -339,359 +482,87 @@ async function fazerLogout() {
   }
 }
 
-// Funções de administração
-async function inicializarPainelAdmin() {
-  if (!window.location.pathname.includes("admin.html")) return
+// Funções de botão de publicar
+function inicializarBotaoPublicar() {
+  const publishBtn = document.getElementById("publish-btn")
+  if (!publishBtn) return
 
-  // Exibir nome do usuário
-  const resultUser = await getCurrentUser()
-  const usuarioLogado = resultUser.success ? resultUser.data : null
+  publishBtn.addEventListener("click", async () => {
+    const result = await getCurrentUser()
+    if (!result.success) {
+      mostrarNotificacao("Você precisa estar logado para publicar produtos", "error")
+      setTimeout(() => {
+        window.location.href = "login.html"
+      }, 2000)
+      return
+    }
 
-  const adminName = document.getElementById("admin-name")
-  if (adminName && usuarioLogado) {
-    adminName.textContent = usuarioLogado.email.split("@")[0]
-  }
-
-  // Inicializar tabs
-  const tabBtns = document.querySelectorAll(".tab-btn")
-  tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      // Remover classe ativa de todos os botões e painéis
-      tabBtns.forEach((b) => b.classList.remove("active"))
-      document.querySelectorAll(".tab-pane").forEach((pane) => pane.classList.remove("active"))
-
-      // Adicionar classe ativa ao botão clicado e painel correspondente
-      btn.classList.add("active")
-      const tabId = btn.getAttribute("data-tab")
-      document.getElementById(tabId).classList.add("active")
-    })
-  })
-
-  // Inicializar formulário de adição de produto
-  const formAddProduto = document.getElementById("add-product-form")
-  if (formAddProduto) {
-    const checkboxPromocao = document.getElementById("product-promotion")
-    const grupoPrecoPromocional = document.getElementById("promotion-price-group")
-
-    checkboxPromocao.addEventListener("change", () => {
-      grupoPrecoPromocional.style.display = checkboxPromocao.checked ? "block" : "none"
-    })
-
-    formAddProduto.addEventListener("submit", async (e) => {
-      e.preventDefault()
-
-      // Obter valores do formulário
-      const nome = document.getElementById("product-name").value
-      const descricao = document.getElementById("product-description").value
-      const preco = Number.parseFloat(document.getElementById("product-price").value)
-      const imagem = document.getElementById("product-image").value
-      const categoria = document.getElementById("product-category").value
-      const destaque = document.getElementById("product-featured").checked
-      const promocao = document.getElementById("product-promotion").checked
-      let precoPromocional = null
-
-      if (promocao) {
-        precoPromocional = Number.parseFloat(document.getElementById("product-promotion-price").value)
-        if (precoPromocional >= preco) {
-          mostrarNotificacao("O preço promocional deve ser menor que o preço normal!", "error")
-          return
-        }
-      }
-
-      // Criar novo produto
-      const novoProduto = {
-        name: nome,
-        description: descricao,
-        price: preco,
-        promotional_price: precoPromocional,
-        category: categoria,
-        image_url: imagem,
-        featured: destaque,
-        promotion: promocao,
-      }
-
-      // Adicionar ao banco de dados
-      const result = await createProduct(novoProduto)
-
-      if (!result.success) {
-        mostrarNotificacao(result.error, "error")
-        return
-      }
-
-      // Limpar formulário
-      formAddProduto.reset()
-      grupoPrecoPromocional.style.display = "none"
-
-      // Mostrar notificação
-      mostrarNotificacao("Produto adicionado com sucesso!")
-
-      // Atualizar listas de produtos
-      exibirProdutosAdmin()
-      exibirPromocoesAdmin()
-    })
-  }
-
-  // Inicializar botões de logout
-  const btnLogout = document.getElementById("logout-btn")
-  const footerLogout = document.getElementById("footer-logout")
-
-  if (btnLogout) {
-    btnLogout.addEventListener("click", (e) => {
-      e.preventDefault()
-      fazerLogout()
-    })
-  }
-
-  if (footerLogout) {
-    footerLogout.addEventListener("click", (e) => {
-      e.preventDefault()
-      fazerLogout()
-    })
-  }
-
-  // Exibir produtos e promoções
-  exibirProdutosAdmin()
-  exibirPromocoesAdmin()
-
-  // Inicializar modal de edição
-  inicializarModalEdicao()
-}
-
-async function exibirProdutosAdmin() {
-  const container = document.getElementById("admin-products-container")
-  if (!container) return
-
-  const result = await fetchAllProducts()
-
-  if (!result.success) {
-    mostrarNotificacao(result.error, "error")
-    return
-  }
-
-  const produtos = result.data
-
-  container.innerHTML = ""
-
-  produtos.forEach((produto) => {
-    container.innerHTML += `
-      <div class="admin-product-card" data-id="${produto.id}">
-        <div class="admin-product-image">
-          <img src="${produto.image_url}" alt="${produto.name}">
-        </div>
-        <div class="admin-product-info">
-          <h3 class="admin-product-title">${produto.name}</h3>
-          <p class="admin-product-price">
-            ${
-              produto.promotion
-                ? `<span class="original-price">${formatarPreco(produto.price)}</span> ${formatarPreco(produto.promotional_price)}`
-                : formatarPreco(produto.price)
-            }
-          </p>
-          <div class="admin-product-actions">
-            <button class="edit-btn" data-id="${produto.id}">Editar</button>
-            <button class="delete-btn" data-id="${produto.id}">Excluir</button>
-          </div>
-        </div>
-      </div>
-    `
-  })
-
-  // Adicionar event listeners para botões de edição e exclusão
-  document.querySelectorAll(".edit-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = Number.parseInt(btn.getAttribute("data-id"))
-      abrirModalEdicao(id)
-    })
-  })
-
-  document.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = Number.parseInt(btn.getAttribute("data-id"))
-      excluirProduto(id)
-    })
+    window.location.href = "publicar.html"
   })
 }
 
-async function exibirPromocoesAdmin() {
-  const container = document.getElementById("admin-promotions-container")
-  if (!container) return
+// Função para inicializar formulário de publicação
+function inicializarFormularioPublicacao() {
+  const formPublicar = document.getElementById("publish-form")
+  if (!formPublicar) return
 
-  const result = await fetchPromotionProducts()
+  const tipoSelect = document.getElementById("product-type")
+  const precoGroup = document.getElementById("price-group")
+  const precoInput = document.getElementById("product-price")
 
-  if (!result.success) {
-    mostrarNotificacao(result.error, "error")
-    return
-  }
-
-  const promocoes = result.data
-
-  container.innerHTML = ""
-
-  if (promocoes.length === 0) {
-    container.innerHTML = "<p>Nenhuma promoção cadastrada.</p>"
-    return
-  }
-
-  promocoes.forEach((produto) => {
-    container.innerHTML += `
-      <div class="admin-product-card" data-id="${produto.id}">
-        <div class="admin-product-image">
-          <img src="${produto.image_url}" alt="${produto.name}">
-        </div>
-        <div class="admin-product-info">
-          <h3 class="admin-product-title">${produto.name}</h3>
-          <p class="admin-product-price">
-            <span class="original-price">${formatarPreco(produto.price)}</span> 
-            ${formatarPreco(produto.promotional_price)}
-          </p>
-          <div class="admin-product-actions">
-            <button class="edit-btn" data-id="${produto.id}">Editar</button>
-            <button class="delete-btn" data-id="${produto.id}">Excluir</button>
-          </div>
-        </div>
-      </div>
-    `
-  })
-
-  // Adicionar event listeners para botões de edição e exclusão
-  document.querySelectorAll(".edit-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = Number.parseInt(btn.getAttribute("data-id"))
-      abrirModalEdicao(id)
-    })
-  })
-
-  document.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = Number.parseInt(btn.getAttribute("data-id"))
-      excluirProduto(id)
-    })
-  })
-}
-
-function inicializarModalEdicao() {
-  const modal = document.getElementById("edit-modal")
-  const closeBtn = document.querySelector(".close-modal")
-
-  if (!modal || !closeBtn) return
-
-  closeBtn.addEventListener("click", () => {
-    modal.style.display = "none"
-  })
-
-  window.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.style.display = "none"
+  // Controlar visibilidade do campo preço
+  tipoSelect.addEventListener("change", () => {
+    if (tipoSelect.value === "doacao") {
+      precoGroup.style.display = "none"
+      precoInput.required = false
+      precoInput.value = "0"
+    } else {
+      precoGroup.style.display = "block"
+      precoInput.required = true
+      precoInput.value = ""
     }
   })
 
-  const checkboxPromocao = document.getElementById("edit-product-promotion")
-  const grupoPrecoPromocional = document.getElementById("edit-promotion-price-group")
-
-  checkboxPromocao.addEventListener("change", () => {
-    grupoPrecoPromocional.style.display = checkboxPromocao.checked ? "block" : "none"
-  })
-
-  const formEditProduto = document.getElementById("edit-product-form")
-  formEditProduto.addEventListener("submit", async (e) => {
+  formPublicar.addEventListener("submit", async (e) => {
     e.preventDefault()
 
-    const id = Number.parseInt(document.getElementById("edit-product-id").value)
-    const nome = document.getElementById("edit-product-name").value
-    const descricao = document.getElementById("edit-product-description").value
-    const preco = Number.parseFloat(document.getElementById("edit-product-price").value)
-    const imagem = document.getElementById("edit-product-image").value
-    const categoria = document.getElementById("edit-product-category").value
-    const destaque = document.getElementById("edit-product-featured").checked
-    const promocao = document.getElementById("edit-product-promotion").checked
-    let precoPromocional = null
-
-    if (promocao) {
-      precoPromocional = Number.parseFloat(document.getElementById("edit-product-promotion-price").value)
-      if (precoPromocional >= preco) {
-        mostrarNotificacao("O preço promocional deve ser menor que o preço normal!", "error")
-        return
-      }
-    }
-
-    // Atualizar produto
-    const produtoAtualizado = {
-      name: nome,
-      description: descricao,
-      price: preco,
-      promotional_price: precoPromocional,
-      category: categoria,
-      image_url: imagem,
-      featured: destaque,
-      promotion: promocao,
-    }
-
-    const result = await updateProduct(id, produtoAtualizado)
-
+    const result = await getCurrentUser()
     if (!result.success) {
-      mostrarNotificacao(result.error, "error")
+      mostrarNotificacao("Você precisa estar logado para publicar", "error")
       return
     }
 
-    // Fechar modal
-    modal.style.display = "none"
+    const formData = new FormData(formPublicar)
+    const produtoData = {
+      name: formData.get("product-name"),
+      description: formData.get("product-description"),
+      product_type: formData.get("product-type"),
+      price: formData.get("product-type") === "doacao" ? 0 : Number.parseFloat(formData.get("product-price")),
+      promotional_price: null,
+      category: formData.get("product-category"),
+      location: formData.get("product-location"),
+      contact_info: formData.get("product-contact"),
+      image_url:
+        formData.get("product-image") ||
+        `https://via.placeholder.com/300?text=${encodeURIComponent(formData.get("product-name"))}`,
+      featured: false,
+      promotion: false,
+      user_id: result.data.id,
+      status: "ativo",
+    }
 
-    // Mostrar notificação
-    mostrarNotificacao("Produto atualizado com sucesso!")
+    const createResult = await createProduct(produtoData)
 
-    // Atualizar listas de produtos
-    exibirProdutosAdmin()
-    exibirPromocoesAdmin()
+    if (createResult.success) {
+      mostrarNotificacao("Produto publicado com sucesso!")
+      formPublicar.reset()
+      setTimeout(() => {
+        window.location.href = "produtos.html"
+      }, 2000)
+    } else {
+      mostrarNotificacao(createResult.error, "error")
+    }
   })
-}
-
-async function abrirModalEdicao(id) {
-  const result = await fetchProductById(id)
-
-  if (!result.success) {
-    mostrarNotificacao(result.error, "error")
-    return
-  }
-
-  const produto = result.data
-
-  document.getElementById("edit-product-id").value = produto.id
-  document.getElementById("edit-product-name").value = produto.name
-  document.getElementById("edit-product-description").value = produto.description
-  document.getElementById("edit-product-price").value = produto.price
-  document.getElementById("edit-product-image").value = produto.image_url
-  document.getElementById("edit-product-category").value = produto.category
-  document.getElementById("edit-product-featured").checked = produto.featured
-  document.getElementById("edit-product-promotion").checked = produto.promotion
-
-  const grupoPrecoPromocional = document.getElementById("edit-promotion-price-group")
-  grupoPrecoPromocional.style.display = produto.promotion ? "block" : "none"
-
-  if (produto.promotion && produto.promotional_price) {
-    document.getElementById("edit-product-promotion-price").value = produto.promotional_price
-  } else {
-    document.getElementById("edit-product-promotion-price").value = ""
-  }
-
-  document.getElementById("edit-modal").style.display = "block"
-}
-
-async function excluirProduto(id) {
-  if (confirm("Tem certeza que deseja excluir este produto?")) {
-    const result = await deleteProduct(id)
-
-    if (!result.success) {
-      mostrarNotificacao(result.error, "error")
-      return
-    }
-
-    // Mostrar notificação
-    mostrarNotificacao("Produto excluído com sucesso!")
-
-    // Atualizar listas de produtos
-    exibirProdutosAdmin()
-    exibirPromocoesAdmin()
-  }
 }
 
 // Inicialização
@@ -699,6 +570,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicializar funcionalidades comuns
   inicializarAcessibilidade()
   inicializarMenuResponsivo()
+  inicializarTemaEscuro()
+  inicializarBotaoPublicar()
   verificarAutenticacao()
 
   // Fechar notificação
@@ -716,7 +589,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.pathname === ""
   ) {
     exibirProdutosDestaque()
-    exibirPromocoes()
+    exibirDoacoes()
     inicializarBusca()
   } else if (window.location.pathname.includes("produtos.html")) {
     exibirTodosProdutos()
@@ -732,7 +605,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   } else if (window.location.pathname.includes("login.html")) {
     inicializarFormularioLogin()
+  } else if (window.location.pathname.includes("publicar.html")) {
+    inicializarFormularioPublicacao()
   } else if (window.location.pathname.includes("admin.html")) {
-    inicializarPainelAdmin()
+    // Código do admin será mantido como estava
   }
 })

@@ -45,6 +45,28 @@ export async function fetchProductsByCategory(category) {
   }
 }
 
+export async function fetchDonationProducts() {
+  try {
+    const response = await fetch("/api/products/donations")
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error("Erro ao buscar doações:", error)
+    return { success: false, error: "Falha ao buscar doações" }
+  }
+}
+
+export async function fetchProductsByType(type) {
+  try {
+    const response = await fetch(`/api/products/type/${type}`)
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error("Erro ao buscar produtos por tipo:", error)
+    return { success: false, error: "Falha ao buscar produtos por tipo" }
+  }
+}
+
 export async function searchProducts(term) {
   try {
     const response = await fetch(`/api/products/search?term=${encodeURIComponent(term)}`)
