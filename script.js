@@ -21,6 +21,7 @@ const cidadesMaranhao = [
   "Chapadinha - MA",
   "São José de Ribamar - MA",
   "Paço do Lumiar - MA",
+  "teste — xique-xique",
 ]
 
 // Função para obter cidade aleatória
